@@ -34,7 +34,8 @@ fun processRanges(ranges: List<LongRange>) {
 
 // Find all numbers in the ranges that have exactly 2 repeating sequences
 fun calculateSolutionOne(numStr: String): Boolean {
-    // Only worry about values that are even length so
+
+    // Only worry about values that are even length
     if (numStr.length % 2 != 0) {
         return false
     }
@@ -76,7 +77,7 @@ fun calculateSolutionTwo(numStr: String): Boolean {
                break
             }
         }
-        // If we make it here we have a repeating pattern so add it to the tally
+        // If we make it here we have a repeating pattern so add it to the tally and return immediately
         if (right.isEmpty()) {
             return true
         }
