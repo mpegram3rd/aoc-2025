@@ -61,7 +61,3 @@ fun slideLeft(cells: IntArray, newValue: Int) {
         }
     }
 }
-
-// Results:
-// 17197 is too high
-// 17020 is too low
