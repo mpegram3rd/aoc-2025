@@ -35,24 +35,17 @@ fun solutionOne(grid: Array<CharArray>): Int {
 fun checkForSpace(x: Int, y: Int, grid: Array<CharArray>, gridWidth: Int, gridHeight: Int): Boolean {
     var adjacentRolls = 0
 
-    // check left and right
-    adjacentRolls += if (x - 1 >= 0 && grid[y][x-1] == '@') 1 else 0
-    adjacentRolls += if (x + 1 < gridWidth && grid[y][x+1] == '@') 1 else 0
-
-    // check above left, center and right
-    if (y - 1 >= 0) {
-        val curY = y - 1 // just calc once
-        adjacentRolls += if (x - 1 >= 0 && grid[curY][x-1] == '@') 1 else 0
-        adjacentRolls += if (grid[curY][x] == '@') 1 else 0
-        adjacentRolls += if (x + 1 < gridWidth && grid[curY][x+1] == '@') 1 else 0
+    for (curY in y - 1 .. y + 1) {
+        // check y bounds
+        if (curY in 0..< gridHeight) {
+            for (curX in x - 1 .. x + 1) {
+                // Check x bounds and also make sure we're not sitting on the value we're evaluating
+                if (curX in 0 ..<  gridWidth && !(curX == x && curY == y)) {
+                    adjacentRolls += if (grid[curY][curX] == '@') 1 else 0
+                }
+            }
+        }
     }
 
-    // check below left, center and right
-    if (y + 1 < gridHeight) {
-        val curY = y + 1 // just calc once
-        adjacentRolls += if (x - 1 >= 0 && grid[curY][x-1] == '@') 1 else 0
-        adjacentRolls += if (grid[curY][x] == '@') 1 else 0
-        adjacentRolls += if (x + 1 < gridWidth && grid[curY][x+1] == '@') 1 else 0
-    }
     return adjacentRolls < 4
 }
