@@ -8,10 +8,29 @@ fun main() {
     }.toTypedArray()
 
     println("Solution One: ${solutionOne(grid)}")
+
+    // Note: because solution 2 modifies the grid it always has to run after solution 1
+    println("Solution Two: ${solutionTwo(grid)}")
+}
+
+// This does a simple pass through the grid but doesn't remove any rolls
+fun solutionOne(grid: Array<CharArray>): Int {
+    return processGrid(grid, false)
+}
+
+// This time we will remove the rolls and re-evaluate until no more rolls are removed.
+fun solutionTwo(grid: Array<CharArray>): Int {
+    var totalRolls = 0
+
+    do {
+        val removed = processGrid(grid, true)
+        totalRolls += removed
+    } while (removed > 0)
+    return totalRolls
 }
 
 // Visits each spot in the grid and checks for space.
-fun solutionOne(grid: Array<CharArray>): Int {
+fun processGrid(grid: Array<CharArray>, removeRolls: Boolean): Int {
     val gridHeight = grid.size
     val gridWidth = grid[0].size
 
@@ -21,8 +40,14 @@ fun solutionOne(grid: Array<CharArray>): Int {
     grid.forEach { rowData ->
         var x = 0
         rowData.forEach { data ->
-            if (data == '@' && checkForSpace(x, y, grid, gridWidth, gridHeight))
+            if (data == '@' && checkForSpace(x, y, grid, gridWidth, gridHeight)) {
                 count++
+
+                // Mark the spot where we're going to remove the roll if the boolean is true.
+                // This will make the space open and potentially allow for more rolls to be removed
+                // if we re-process the grid. Downside.., it directly modifies data in the grid
+                if (removeRolls) grid[y][x] = 'x'
+            }
             x++
         }
         y++
