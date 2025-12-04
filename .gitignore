@@ -460,3 +460,5 @@ pyrightconfig.json
 
 # Don't check-in AoC data files
 *.txt
+!demo-input.txt
+
