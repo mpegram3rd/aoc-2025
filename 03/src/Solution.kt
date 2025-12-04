@@ -1,63 +1,115 @@
 import java.io.File
 
 fun main() {
-    var totalJoltage = 0
+    var totalJoltage1:Long = 0
+    var totalJoltage2:Long = 0
 
     val garbIn = File("puzzle-input.txt")
     // Parse file line by line
     garbIn.forEachLine { batteryBank ->
-        totalJoltage += solutionOne(batteryBank)
+        totalJoltage1 += solution(batteryBank, 2)
+        totalJoltage2 += solution(batteryBank, 12)
     }
 
-    println("Solution 1 - Total Joltage: $totalJoltage")
+    println("Solution 1 - Total Joltage: $totalJoltage1")
+    println("Solution 2 - Total Joltage: $totalJoltage2")
 }
 
-// Finds two largest numbers it can reading from left to right
-fun solutionOne(batteryBank: String): Int {
-    val cells = IntArray(2)
+// Generalized solution that can calculate joltage for an arbitrary number of cells in the battery bank
+fun solution(batteryBank: String, maxCells: Int): Long {
+    val cells = IntArray(maxCells)
 
-    print("Input: $batteryBank")
+    // Which battery cell are we currently filling
+    var currentCellIndex = 0
 
-    // The final digit is a special case.  If it happens to be larger than the first digit
-    // we should NOT slide the cells because there will be no other digit to fill in the new open slot.
-    // This is a small optimization to keep from recalculating this value unnecessarily.
-    val endIndex = batteryBank.length - 1
+    // How many cell slots to the right of the current cell are available to be filled
+    var cellsRemaining = maxCells - 1
+
+    // How many digits do we have left to work with
+    var digitsRemaining = batteryBank.length
 
     // Walk through the battery bank one battery cell at a time
-    batteryBank.forEachIndexed { index, character ->
-        val value = character.toString().toInt()
+    batteryBank.forEach { numChar ->
 
-        // If we find a value that is larger than what we have in the right hand digit, replace it.
-        if (value > cells[1]) {
-            cells[1] = value
+        digitsRemaining--
+        val value = numChar.toString().toInt()
+
+        // If the value is less than or equal to what is in the current cell, and there's more cells to fill
+        // just drop that value in the current cell and move on to the next one.
+        if (value <= cells[currentCellIndex] && cellsRemaining > 0) {
+            currentCellIndex++
+            cellsRemaining--
         }
 
-        // If the right hand cell value is larger than the left hand cell value, AND (importantly) not the last cell
-        // Then we have an opportunity to increase the joltage value by sliding the larger value into the left hand cell
-        // to make room for other values in the right hand cell.
-        if (cells[1] > cells[0] && index < endIndex) {
-            slideLeft(cells, 0)
+        // If the value is greater than that of the current cell drop the value into the current cell
+        if (value > cells[currentCellIndex]) {
+
+            // Drop the new value into the current position
+            cells[currentCellIndex] = value
+
+            // If the new value is > than it's neighbor to the left, we may be able to shift it left
+            // This tries to figure out how far left we can shift the value (the answer might be 0)
+            val howMuchShift = calculateShift(value, cells, currentCellIndex, digitsRemaining)
+
+            // Shift the cells as much as we can and make sure the new currentCellIndex points to the next cell to work
+            currentCellIndex = shiftCells(cells, currentCellIndex, howMuchShift)
+            cellsRemaining = cells.size - currentCellIndex - 1
         }
     }
 
-    // Convert our 2 values into a "Joltage" value
-    var joltage = 0
+    return calculateTotalJoltage(cells)
+}
+
+// Converts the array of cells into a single joltage value
+fun calculateTotalJoltage(cells: IntArray): Long {
+    var joltage:Long = 0
     for (cell in cells) {
         joltage = (joltage * 10) + cell
     }
-
-    println(" Joltage: $joltage")
     return joltage
 }
 
-// Slides the values in the array to the left and inserts the new value at the end
-fun slideLeft(cells: IntArray, newValue: Int) {
-    cells.forEachIndexed { index, _ ->
-        if (index < cells.size - 1) {
-            cells[index] = cells[index + 1]
+// How many positions to the left can we shift the value where it is greater than the value in that slot.
+// The tricky part is we can't shift it too far left where we leave empty slots that can't be filled by the
+// remaining digits.
+fun calculateShift(value: Int, cells: IntArray, currentIndex: Int, digitsRemaining: Int): Int {
+
+    // Tally how many slots we can shift
+    var shiftCount = 0
+
+    // How many unfilled cells are available to the right of the current index
+    val availableCells = cells.size - currentIndex - 1
+
+    // We can't shift left more than the number of remaining digits so figure ou the maximum available shifts
+    // Note: this value could be 0 or fewer (which will cause the below loop to be skipped)
+    var availableShifts = digitsRemaining - availableCells
+    var index = currentIndex - 1
+
+    // As long as we still have available shifts, and we haven't reached the front of the cell bank, keep working
+    while (availableShifts > 0 && index >= 0) {
+
+        // If the value is greater than what is at the current location, plan for another shift
+        if (value > cells[index]) {
+            shiftCount++
+            availableShifts--
         }
-        else {
-            cells[index] = newValue
-        }
+        index--
     }
+
+    return shiftCount
+}
+
+// Shifts the value at the current index left by howMuchShift positions and fills vacated slots with 0
+fun shiftCells(cells: IntArray, currentIndex: Int, howMuchShift: Int): Int {
+
+    val newIndex = currentIndex - howMuchShift
+    cells[newIndex] = cells[currentIndex]
+
+    // Flush out vacated cells
+    for (i in currentIndex downTo newIndex + 1) {
+        cells[i] = 0
+    }
+
+    // Move the current index pointer to the next available cell
+    return if (newIndex + 1 < cells.size) newIndex + 1 else newIndex
 }
