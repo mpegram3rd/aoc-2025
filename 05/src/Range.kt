@@ -12,10 +12,10 @@ data class Range (var start: Long, var end: Long): Comparable<Range> {
         var overlapping = (range.start in start..end)
 
         // if not found, check for overlap at the backend of the range
-        overlapping = (!overlapping && range.end in start .. end)
+        overlapping = overlapping || (range.end in start .. end)
 
         // Finally see if this range fits inside the provided range
-        overlapping = (!overlapping && range.start <= start && range.end >= end)
+        overlapping = overlapping || (range.start <= start && range.end >= end)
 
         return overlapping
     }
@@ -39,6 +39,10 @@ data class Range (var start: Long, var end: Long): Comparable<Range> {
      */
     fun inRange(value: Long): Boolean {
         return value in start..end
+    }
+
+    fun size(): Long {
+        return end - start + 1
     }
 
     /**
