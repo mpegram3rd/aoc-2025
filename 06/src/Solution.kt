@@ -16,7 +16,7 @@ fun solutionOne(filename: String): Long {
     val problems = mutableListOf<MathProblem>()
     val garbIn = File(filename)
     garbIn.forEachLine { line ->
-        // Note.. the split produces empty strings so need to filter those
+        // Note the split produces empty strings so need to filter those
         val components = line.trim().split(" ").filter { it != "" }
 
         if (components[0] == "+" || components[0] == "*") {
